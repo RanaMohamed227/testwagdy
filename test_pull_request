@@ -13,12 +13,12 @@ pipeline {
         stage('Identify Git Event') {
             steps {
                 script {
-                    if (env.CHANGE_ID) { // Pull request event
-                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH}"
-                        currentBuild.displayName = "PR-${env.CHANGE_BRANCH}-${env.CHANGE_ID} - Build #${env.BUILD_NUMBER}"  
+                    if (env.GITHUB_PR_NUMBER) { // Pull request event
+                        echo "This is a pull request from branch: ${env.GITHUB_PR_SOURCE_BRANCH}"
+                        currentBuild.displayName = "PR-${env.GITHUB_PR_SOURCE_BRANCH}-${env.GITHUB_PR_NUMBER} - Build #${env.BUILD_NUMBER}"  
                     } else { // Push event
-                        echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
-                        currentBuild.displayName = "Push-${env.BRANCH_NAME} - Build #${env.BUILD_NUMBER}"
+                        echo "Push Event detected for branch: ${env.GITHUB_BRANCH}, Build #${env.BUILD_NUMBER}"
+                        currentBuild.displayName = "Push-${env.GITHUB_BRANCH} - Build #${env.BUILD_NUMBER}"
                     }
                 }
             }
@@ -27,7 +27,7 @@ pipeline {
         stage('Branch-Specific Pipeline') {
             when {
                 anyOf {
-                    expression { env.CHANGE_ID == null } // Run this stage for pushes
+                    expression { env.GITHUB_PR_NUMBER == null } // Run this stage for pushes
                     branch 'main' // Optionally ensure this runs for pushes to 'main' or other specific branches
                 }
             }
@@ -37,7 +37,7 @@ pipeline {
                         stage('Build') {
                             steps {
                                 script {
-                                    switch (env.BRANCH_NAME) {
+                                    switch (env.GITHUB_BRANCH) {
                                         case 'Feature1':
                                             echo "Building for Feature1..."
                                             // Developer1-specific build steps
@@ -55,7 +55,7 @@ pipeline {
                                             echo "Building the Gtest project..."
                                             break
                                         default:
-                                            echo "No build steps for branch: ${env.BRANCH_NAME}"
+                                            echo "No build steps for branch: ${env.GITHUB_BRANCH}"
                                             break
                                     }
                                 }
@@ -65,7 +65,7 @@ pipeline {
                             steps {
                                 echo "Running Static Code Analysis..."
                                 script {
-                                    switch (env.BRANCH_NAME) {
+                                    switch (env.GITHUB_BRANCH) {
                                         case 'Feature1':
                                             // Developer1-specific static analysis steps
                                             break
@@ -79,7 +79,7 @@ pipeline {
                                             echo "Running Static Code Analysis on the main branch..."
                                             break
                                         default:
-                                            echo "No static analysis steps for branch: ${env.BRANCH_NAME}"
+                                            echo "No static analysis steps for branch: ${env.GITHUB_BRANCH}"
                                             break
                                     }
                                 }
@@ -106,10 +106,8 @@ pipeline {
         }
 
         stage('Pull Request Pipeline') {
-           when {
-                not {
-                    environment name: 'CHANGE_ID', value: ''
-                }
+            when {
+                environment name: 'GITHUB_PR_NUMBER', value: env.GITHUB_PR_NUMBER // Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {
