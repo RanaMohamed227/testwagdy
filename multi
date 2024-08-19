@@ -1,0 +1,125 @@
+/*********************************************
+**********************************************
+* Jenkinsfile for CI Multibranch Pipeline
+* Project: CI_Brightskies
+* Brightskies ©
+**********************************************
+**********************************************/
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Identify Git Event') {
+            steps {
+                script {
+                    if (env.ghprbPullId) { // Use ghprbPullId for PR number
+                        echo "This is a pull request from branch: ${env.ghprbSourceBranch}"
+                        currentBuild.displayName = "PR-${env.ghprbSourceBranch}-${env.ghprbPullId} - Build #${env.BUILD_NUMBER}"  
+                    } else {
+                        echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
+                        currentBuild.displayName = "Push-${env.BRANCH_NAME} - Build #${env.BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+        stage('Branch-Specific Pipeline') {
+            parallel {
+                stage('SWE Branches') {
+                    stages {
+                        stage('Build') {
+                            steps {
+                                script {
+                                    switch (env.BRANCH_NAME) {
+                                        case 'Feature1':
+                                            echo "Building for Feature1..."
+                                            // Developer1-specific build steps
+                                            break
+                                        case 'Feature2':
+                                            echo "Building for Feature2..."
+                                            // Developer2-specific build steps
+                                            break
+                                        case 'Feature3':
+                                            echo "Building for Feature3..."
+                                            // Developer3-specific build steps
+                                            break
+                                        case 'main':
+                                            echo "Building source code for main branch..."
+                                            echo "Building the Gtest project..."
+                                            break
+                                        default:
+                                            echo "No build steps for branch: ${env.BRANCH_NAME}"
+                                            break
+                                    }
+                                }
+                            }
+                        }
+                        stage('Static Code Analysis') {
+                            steps {
+                                echo "Running Static Code Analysis..."
+                                script {
+                                    switch (env.BRANCH_NAME) {
+                                        case 'Feature1':
+                                            // Developer1-specific static analysis steps
+                                            break
+                                        case 'Feature2':
+                                            // Developer2-specific static analysis steps
+                                            break
+                                        case 'Feature3':
+                                            // Developer3-specific static analysis steps
+                                            break
+                                        case 'main':
+                                            echo "Running Static Code Analysis on the main branch..."
+                                            break
+                                        default:
+                                            echo "No static analysis steps for branch: ${env.BRANCH_NAME}"
+                                            break
+                                    }
+                                }
+                            }
+                        }
+                        stage('Code Coverage Analysis') {
+                            steps {
+                                echo "Generating code coverage report..."
+                            }
+                        }
+                        stage('Unit Testing') {
+                            steps {
+                                echo "Running unit tests with Google Test..."
+                            }
+                        }
+                        stage('Allure Report SUT') {
+                            steps {
+                                echo "Generating Allure report..."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Pull Request Pipeline') {
+            when {
+                expression { env.ghprbPullId } // Run only for pull request events
+            }
+            stages {
+                stage('Checkout PR') {
+                    steps {
+                        echo 'Checking out the PR branch...'
+                        // Add your checkout or PR-specific steps here
+                    }
+                }
+                stage('Integration Tests') {
+                    steps {
+                        echo 'Running Integration tests...'
+                        // Add your test steps here
+                    }
+                }
+                stage('Jira Release Notes') {
+                    steps {
+                        echo "Generating Jira release notes..."
+                    }
+                }
+            }
+        }
+    }
+}
