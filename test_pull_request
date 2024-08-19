@@ -1,3 +1,11 @@
+/*********************************************
+**********************************************
+* Jenkinsfile for CI Multibranch Pipeline
+* Project: CI_Brightskies
+* Brightskies ©
+**********************************************
+**********************************************/
+
 pipeline {
     agent any
 
@@ -5,8 +13,8 @@ pipeline {
         stage('Identify Git Event') {
             steps {
                 script {
-                    if (env.CHANGE_ID) { // Use CHANGE_ID for PR number
-                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH} targeting: ${env.CHANGE_TARGET}"
+                    if (env.CHANGE_ID) { // Use CHANGE_ID for PR detection
+                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH}"
                         currentBuild.displayName = "PR-${env.CHANGE_BRANCH}-${env.CHANGE_ID} - Build #${env.BUILD_NUMBER}"  
                     } else {
                         echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
@@ -18,6 +26,11 @@ pipeline {
         stage('Branch-Specific Pipeline') {
             parallel {
                 stage('SWE Branches') {
+                    when {
+                        not {
+                            expression { env.CHANGE_ID != null } // Skip this stage for pull requests
+                        }
+                    }
                     stages {
                         stage('Build') {
                             steps {
@@ -91,7 +104,7 @@ pipeline {
         }
         stage('Pull Request Pipeline') {
             when {
-                expression { env.CHANGE_ID } // Run only for pull request events
+                expression { env.CHANGE_ID != null } // Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {
