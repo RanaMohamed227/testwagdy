@@ -104,7 +104,7 @@ pipeline {
         }
         stage('Pull Request Pipeline') {
             when {
-                branch 'PR-*'  // Run only for pull request events
+                expression { env.CHANGE_ID != null } // Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {
