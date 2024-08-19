@@ -1,3 +1,11 @@
+/*********************************************
+**********************************************
+* Jenkinsfile for CI Multibranch Pipeline
+* Project: CI_Brightskies
+* Brightskies ©
+**********************************************
+**********************************************/
+
 pipeline {
     agent any
 
@@ -5,17 +13,24 @@ pipeline {
         stage('Identify Git Event') {
             steps {
                 script {
-                    if (env.CHANGE_ID) { // Use CHANGE_ID for PR number
-                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH} targeting: ${env.CHANGE_TARGET}"
+                    if (env.CHANGE_ID) { // Pull request event
+                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH}"
                         currentBuild.displayName = "PR-${env.CHANGE_BRANCH}-${env.CHANGE_ID} - Build #${env.BUILD_NUMBER}"  
-                    } else {
+                    } else { // Push event
                         echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
                         currentBuild.displayName = "Push-${env.BRANCH_NAME} - Build #${env.BUILD_NUMBER}"
                     }
                 }
             }
         }
+
         stage('Branch-Specific Pipeline') {
+            when {
+                anyOf {
+                    expression { env.CHANGE_ID == null } // Run this stage for pushes
+                    branch 'main' // Optionally ensure this runs for pushes to 'main' or other specific branches
+                }
+            }
             parallel {
                 stage('SWE Branches') {
                     stages {
@@ -89,9 +104,10 @@ pipeline {
                 }
             }
         }
+
         stage('Pull Request Pipeline') {
             when {
-                expression { env.CHANGE_ID } // Run only for pull request events
+                expression { env.CHANGE_ID != null } // Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {

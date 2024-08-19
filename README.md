@@ -39,10 +39,4 @@ yamoshl
 
 
 
-
-
-yamoshl
-
-
-
 yamoshl
