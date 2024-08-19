@@ -13,12 +13,12 @@ pipeline {
         stage('Identify Git Event') {
             steps {
                 script {
-                    if (env.GITHUB_PR_NUMBER) { // Pull request event
-                        echo "This is a pull request from branch: ${env.GITHUB_PR_SOURCE_BRANCH}"
-                        currentBuild.displayName = "PR-${env.GITHUB_PR_SOURCE_BRANCH}-${env.GITHUB_PR_NUMBER} - Build #${env.BUILD_NUMBER}"  
+                    if (env.CHANGE_ID) { // Pull request event
+                        echo "This is a pull request from branch: ${env.CHANGE_BRANCH}"
+                        currentBuild.displayName = "PR-${env.CHANGE_BRANCH}-${env.CHANGE_ID} - Build #${env.BUILD_NUMBER}"  
                     } else { // Push event
-                        echo "Push Event detected for branch: ${env.GITHUB_BRANCH}, Build #${env.BUILD_NUMBER}"
-                        currentBuild.displayName = "Push-${env.GITHUB_BRANCH} - Build #${env.BUILD_NUMBER}"
+                        echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
+                        currentBuild.displayName = "Push-${env.BRANCH_NAME} - Build #${env.BUILD_NUMBER}"
                     }
                 }
             }
@@ -26,8 +26,9 @@ pipeline {
 
         stage('Branch-Specific Pipeline') {
             when {
-                not {
-                    expression { env.GITHUB_PR_NUMBER != null } // Run this stage only for non-PR events (e.g., pushes)
+                anyOf {
+                    expression { env.CHANGE_ID == null } // Run this stage for pushes
+                    branch 'main' // Runs for pushes to 'main'
                 }
             }
             parallel {
@@ -36,7 +37,7 @@ pipeline {
                         stage('Build') {
                             steps {
                                 script {
-                                    switch (env.GITHUB_BRANCH) {
+                                    switch (env.BRANCH_NAME) {
                                         case 'Feature1':
                                             echo "Building for Feature1..."
                                             // Developer1-specific build steps
@@ -54,7 +55,7 @@ pipeline {
                                             echo "Building the Gtest project..."
                                             break
                                         default:
-                                            echo "No build steps for branch: ${env.GITHUB_BRANCH}"
+                                            echo "No build steps for branch: ${env.BRANCH_NAME}"
                                             break
                                     }
                                 }
@@ -63,25 +64,6 @@ pipeline {
                         stage('Static Code Analysis') {
                             steps {
                                 echo "Running Static Code Analysis..."
-                                script {
-                                    switch (env.GITHUB_BRANCH) {
-                                        case 'Feature1':
-                                            // Developer1-specific static analysis steps
-                                            break
-                                        case 'Feature2':
-                                            // Developer2-specific static analysis steps
-                                            break
-                                        case 'Feature3':
-                                            // Developer3-specific static analysis steps
-                                            break
-                                        case 'main':
-                                            echo "Running Static Code Analysis on the main branch..."
-                                            break
-                                        default:
-                                            echo "No static analysis steps for branch: ${env.GITHUB_BRANCH}"
-                                            break
-                                    }
-                                }
                             }
                         }
                         stage('Code Coverage Analysis') {
@@ -106,13 +88,12 @@ pipeline {
 
         stage('Pull Request Pipeline') {
             when {
-                 environment name: 'GITHUB_PR_NUMBER', value: env.GITHUB_PR_NUMBER
-// Run only for pull request events
+                environment name: 'CHANGE_ID', value: '^\\d+$' // Ensure this runs only for PR events
             }
             stages {
                 stage('Checkout PR') {
                     steps {
-                        echo "Checking out the PR branch: ${env.GITHUB_PR_SOURCE_BRANCH}"
+                        echo 'Checking out the PR branch...'
                         // Add your checkout or PR-specific steps here
                     }
                 }
@@ -124,7 +105,7 @@ pipeline {
                 }
                 stage('Jira Release Notes') {
                     steps {
-                        echo "Generating Jira release notes for PR-${env.GITHUB_PR_NUMBER}..."
+                        echo "Generating Jira release notes..."
                     }
                 }
             }

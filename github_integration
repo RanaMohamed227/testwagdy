@@ -26,8 +26,9 @@ pipeline {
 
         stage('Branch-Specific Pipeline') {
             when {
-                not {
-                    expression { env.GITHUB_PR_NUMBER != null } // Run this stage only for non-PR events (e.g., pushes)
+                anyOf {
+                    expression { env.GITHUB_PR_NUMBER == null } // Run this stage for pushes
+                    branch 'main' // Optionally ensure this runs for pushes to 'main' or other specific branches
                 }
             }
             parallel {
@@ -106,13 +107,12 @@ pipeline {
 
         stage('Pull Request Pipeline') {
             when {
-                 environment name: 'GITHUB_PR_NUMBER', value: env.GITHUB_PR_NUMBER
-// Run only for pull request events
+                environment name: 'GITHUB_PR_NUMBER', value: env.GITHUB_PR_NUMBER // Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {
                     steps {
-                        echo "Checking out the PR branch: ${env.GITHUB_PR_SOURCE_BRANCH}"
+                        echo 'Checking out the PR branch...'
                         // Add your checkout or PR-specific steps here
                     }
                 }
@@ -124,7 +124,7 @@ pipeline {
                 }
                 stage('Jira Release Notes') {
                     steps {
-                        echo "Generating Jira release notes for PR-${env.GITHUB_PR_NUMBER}..."
+                        echo "Generating Jira release notes..."
                     }
                 }
             }
