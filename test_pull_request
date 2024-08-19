@@ -106,8 +106,10 @@ pipeline {
         }
 
         stage('Pull Request Pipeline') {
-            when {
-                expression { env.CHANGE_ID != null } // Run only for pull request events
+           when {
+                not {
+                    environment name: 'CHANGE_ID', value: ''
+                }
             }
             stages {
                 stage('Checkout PR') {
