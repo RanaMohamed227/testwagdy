@@ -13,24 +13,26 @@ pipeline {
         stage('Identify Git Event') {
             steps {
                 script {
-                    if (env.CHANGE_ID) { // Use CHANGE_ID for PR detection
+                    if (env.CHANGE_ID) { // Pull request event
                         echo "This is a pull request from branch: ${env.CHANGE_BRANCH}"
                         currentBuild.displayName = "PR-${env.CHANGE_BRANCH}-${env.CHANGE_ID} - Build #${env.BUILD_NUMBER}"  
-                    } else {
+                    } else { // Push event
                         echo "Push Event detected for branch: ${env.BRANCH_NAME}, Build #${env.BUILD_NUMBER}"
                         currentBuild.displayName = "Push-${env.BRANCH_NAME} - Build #${env.BUILD_NUMBER}"
                     }
                 }
             }
         }
+
         stage('Branch-Specific Pipeline') {
+            when {
+                anyOf {
+                    expression { env.CHANGE_ID == null } // Run this stage for pushes
+                    branch 'main' // Optionally ensure this runs for pushes to 'main' or other specific branches
+                }
+            }
             parallel {
                 stage('SWE Branches') {
-                    when {
-                        not {
-                            expression { env.CHANGE_ID != null } // Skip this stage for pull requests
-                        }
-                    }
                     stages {
                         stage('Build') {
                             steps {
@@ -102,6 +104,7 @@ pipeline {
                 }
             }
         }
+
         stage('Pull Request Pipeline') {
             when {
                 expression { env.CHANGE_ID != null } // Run only for pull request events
