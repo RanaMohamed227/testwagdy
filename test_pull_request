@@ -106,7 +106,8 @@ pipeline {
 
         stage('Pull Request Pipeline') {
             when {
-                expression { env.GITHUB_PR_NUMBER != null } // Run only for pull request events
+                 environment name: 'GITHUB_PR_NUMBER', value: env.GITHUB_PR_NUMBER
+// Run only for pull request events
             }
             stages {
                 stage('Checkout PR') {
