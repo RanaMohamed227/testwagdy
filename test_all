@@ -29,7 +29,7 @@ pipeline {
               //  not { expression { env.ghprbPullId } } // Run only for push events
             
            expression { env.ghprbPullId } // Run only for pull request events
-branch 'Feature'
+
 }
             parallel {
                 stage('SWE 4') {
@@ -116,6 +116,7 @@ branch 'Feature'
                 expression { env.ghprbPullId } // Run only for pull request events
 branch 'Dev'
 branch 'Feature'
+branch 'main'
             }
             parallel {
                 stage('SWE 5 - PR') {
@@ -142,6 +143,7 @@ branch 'Feature'
                 
                 stage('SWE 5 - Release Notes') {
                     when {
+branch 'Dev'
                         branch 'main'
                     }
                     stages {
