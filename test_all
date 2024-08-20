@@ -114,9 +114,9 @@ pipeline {
         stage('Pull Request Pipeline') {
             when {
                 expression { env.ghprbPullId } // Run only for pull request events
-branch 'Dev'
-branch 'Feature'
-branch 'main'
+branch "Dev"
+branch "Feature"
+branch "main"
             }
             parallel {
                 stage('SWE 5 - PR') {
@@ -136,11 +136,11 @@ branch 'main'
                     
                     }
                 }
-                
+                }
                 stage('SWE 5 - Release Notes') {
                     when {
-branch 'Dev'
-                        branch 'main'
+branch "Dev"
+                        branch "main"
                     }
                     stages {
                         stage('Release Notes') {
@@ -151,7 +151,7 @@ branch 'Dev'
                         }
                     }
                 }
-            }
+            
         }
     }
 }
