@@ -133,11 +133,7 @@ branch 'main'
                                 // Add your test steps here
                             }
                         }
-                        stage('Jira Release Notes') {
-                            steps {
-                                echo "Generating Jira release notes..."
-                            }
-                        }
+                    
                     }
                 }
                 
