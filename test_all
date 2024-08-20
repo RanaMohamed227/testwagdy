@@ -26,15 +26,12 @@ pipeline {
         
         stage('Push Pipeline') {
             when {
-              //  not { expression { env.ghprbPullId } } // Run only for push events
-            
-           expression { env.ghprbPullId } // Run only for pull request events
-
-}
+                not { expression { env.ghprbPullId } } // Run only for push events
+            }
             parallel {
                 stage('SWE 4') {
                     stages {
-                        /*******************************************************Build Stage***********************************************************/
+                        /******************************************************* Build Stage ***********************************************************/
                         stage('Build') {
                             steps {
                                 script {
@@ -59,7 +56,7 @@ pipeline {
                             }
                         }
                         
-                        /************************************************ Static Code Analysis Stage*************************************************/
+                        /************************************************ Static Code Analysis Stage *************************************************/
                         stage('Static Code Analysis') {
                             steps {
                                 echo "Running Static Code Analysis..."
@@ -113,10 +110,14 @@ pipeline {
         
         stage('Pull Request Pipeline') {
             when {
-                expression { env.ghprbPullId } // Run only for pull request events
-branch "Dev"
-branch "Feature"
-branch "main"
+                allOf {
+                    expression { env.ghprbPullId } // Run only for pull request events
+                    anyOf {
+                        branch 'Dev'
+                        branch 'Feature'
+                        branch 'main'
+                    }
+                }
             }
             parallel {
                 stage('SWE 5 - PR') {
@@ -133,25 +134,26 @@ branch "main"
                                 // Add your test steps here
                             }
                         }
-                    
                     }
                 }
+            }
+        }
+        
+        stage('Release Notes') {
+            when {
+                anyOf {
+                    branch 'Dev'
+                    branch 'main'
                 }
-                stage('SWE 5 - Release Notes') {
-                    when {
-branch "Dev"
-                        branch "main"
-                    }
-                    stages {
-                        stage('Release Notes') {
-                            steps {
-                                echo 'Releasing Jira notes...'
-                                // Add your checkout or release-specific steps here
-                            }
-                        }
+            }
+            stages {
+                stage('Release Notes') {
+                    steps {
+                        echo 'Releasing Jira notes...'
+                        // Add your checkout or release-specific steps here
                     }
                 }
-            
+            }
         }
     }
 }
