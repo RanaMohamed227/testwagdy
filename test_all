@@ -26,7 +26,7 @@ pipeline {
         
         stage('Push Pipeline') {
             when {
-                not { expression { env.ghprbPullId } } // Run only for push events
+                expression { env.ghprbPullId } // Run only for pull request events
             }
             parallel {
                 stage('SWE 4') {
