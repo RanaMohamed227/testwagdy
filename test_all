@@ -26,8 +26,11 @@ pipeline {
         
         stage('Push Pipeline') {
             when {
-                not { expression { env.ghprbPullId } } // Run only for push events
-            }
+              //  not { expression { env.ghprbPullId } } // Run only for push events
+            
+           expression { env.ghprbPullId } // Run only for pull request events
+
+}
             parallel {
                 stage('SWE 4') {
                     stages {
@@ -112,6 +115,8 @@ pipeline {
             when {
                 expression { env.ghprbPullId } // Run only for pull request events
 branch 'Dev'
+branch 'Feature'
+branch 'main'
             }
             parallel {
                 stage('SWE 5 - PR') {
@@ -128,17 +133,14 @@ branch 'Dev'
                                 // Add your test steps here
                             }
                         }
-                        stage('Jira Release Notes') {
-                            steps {
-                                echo "Generating Jira release notes..."
-                            }
-                        }
+                    
                     }
                 }
                 
                 stage('SWE 5 - Release Notes') {
                     when {
-                        branch 'master'
+branch 'Dev'
+                        branch 'main'
                     }
                     stages {
                         stage('Release Notes') {

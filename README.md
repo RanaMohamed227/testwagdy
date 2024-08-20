@@ -111,19 +111,3 @@ yamoshl
 
 yamoshl
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-yamoshl
