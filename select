@@ -1,18 +1,15 @@
 pipeline {
     agent any
 
-
     environment {
-        PYTHON_PATH = 'C:\\Program Files\\Python38\\python'
-
-        }
+        PYTHON_PATH = 'C:\\Program Files\\Python38\\python' // Path to Python executable
+    }
 
     stages {
-
         stage('Run Python Script') {
             steps {
                 script {
-                    def result = bat(script: "${env.PYTHON_PATH} select.py", returnStdout: true).trim()
+                    def result = bat(script: "${env.PYTHON_PATH} select.py", returnStdout: true).trim() 
                     echo result
                 }
             }
