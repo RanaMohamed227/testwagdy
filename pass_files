@@ -19,13 +19,13 @@ pipeline {
                     // Filter only `.c` files, since the script only accepts one `.c` file at a time
                     def filteredFiles = filesList.findAll { it.endsWith('.c') }
                     
-                    if (filteredFiles.size() == 1) {
+                    if (filteredFiles.size() == 0) {
                         def sourceFile = filteredFiles[0] // Get the only `.c` file
                         echo "Source file for MISRA check: ${sourceFile}"
                         
                         // Run the Misra_src_check.sh script with the source file
                         sh "bash Misra_src_check.sh ${sourceFile}"
-                    } else if (filteredFiles.size() == 0) {
+                    } else if (filteredFiles.size() == 1) {
                         echo "No .c files to process."
                     } else {
                         echo "Error: More than one .c file found. Misra_src_check.sh only supports one file at a time."
