@@ -5,27 +5,32 @@ pipeline {
         PYTHON_PATH = 'C:\\Users\\Rana\\AppData\\Local\\Programs\\Python\\Python312\\python'
     }
 
-    stages {
+   stages {
         stage('Run Python Script') {
             steps {
                 script {
                     // Run the Python script to get modified files
                     def modifiedFiles = bat(script: "\"${env.PYTHON_PATH}\" select.py", returnStdout: true).trim()
-                    echo "Modified files: ${modifiedFiles}"
                     
-                    // Parse the files from the Python output (split them into a list)
-                    def filesList = modifiedFiles.split('\n')
+                    // Debug output from the Python script
+                    echo "Modified files output:\n${modifiedFiles}"
                     
-                    // Filter only `.c` files, since the script only accepts one `.c` file at a time
+                    // Split the files based on line breaks
+                    def filesList = modifiedFiles.split("\\r?\\n")
+                    
+                    // Debug the split files list
+                    echo "Parsed files list: ${filesList.join(', ')}"
+                    
+                    // Filter out `.c` files and pass the first one to the MISRA check script
                     def filteredFiles = filesList.findAll { it.endsWith('.c') }
                     
-                    if (filteredFiles.size() == 0) {
-                        def sourceFile = filteredFiles[0] // Get the only `.c` file
+                    if (filteredFiles.size() == 1) {
+                        def sourceFile = filteredFiles[0]
                         echo "Source file for MISRA check: ${sourceFile}"
                         
                         // Run the Misra_src_check.sh script with the source file
                         sh "bash Misra_src_check.sh ${sourceFile}"
-                    } else if (filteredFiles.size() == 1) {
+                    } else if (filteredFiles.size() == 0) {
                         echo "No .c files to process."
                     } else {
                         echo "Error: More than one .c file found. Misra_src_check.sh only supports one file at a time."
