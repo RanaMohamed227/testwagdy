@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     // Run the Python script to detect changes and save the file list
-                    def result = bat(script: "${env.PYTHON_PATH} select.py", returnStdout: true).trim()
+                    def result = bat(script: "${env.PYTHON_PATH} TestCommit.py", returnStdout: true).trim()
                     echo "Python script output:\n${result}"
 
                     // Check if the changed files were recorded in the text file
