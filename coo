@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_PATH = 'C:\\Users\\Rana\\AppData\\Local\\Programs\\Python\\Python312\\python'
+    }
+
+    stages {
+
+        stage('Run Python Script') {
+            steps {
+                script {
+                    // Run the Python script to get the modified .c files
+                    def result = bat(script: "${env.PYTHON_PATH} select.py", returnStdout: true).trim()
+                    echo "Modified files output:\n${result}"
+
+                    // Parse the result and filter .c files
+                    def cFiles = result.split('\n').findAll { it.endsWith('.c') }
+
+                    if (cFiles) {
+                        echo "Parsed .c files list: ${cFiles}"
+
+                    } else {
+                        echo "No .c files to process."
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up or handle any final tasks
+            echo 'Pipeline execution completed.'
+        }
+    }
+}
