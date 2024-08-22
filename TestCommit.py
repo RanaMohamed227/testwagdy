@@ -28,11 +28,12 @@ def get_changed_files_since_commit(last_commit_sha):
                 universal_newlines=True
             )
         else:
+            # Get changes from the last commit to HEAD if no last commit is found
             result = subprocess.check_output(
-                ['git', 'diff', '--name-only', 'HEAD'],
+                ['git', 'diff', '--name-only', 'HEAD~1..HEAD'],  # Compare last commit to current HEAD
                 universal_newlines=True
             )
-
+        
         changed_files = result.strip().split('\n')
         return [file for file in changed_files if file.endswith('.c') or file.endswith('.h')]
     except subprocess.CalledProcessError as e:
@@ -59,4 +60,7 @@ if __name__ == "__main__":
         save_changed_files(changed_files)
         print("Files saved successfully.")
     else:
-        print("No changed .c or .h files found.")
+        # Create an empty changed_files.txt if no files are changed
+        with open(CHANGED_FILES_FILE, 'w') as f:
+            f.write("")  # Write an empty file
+        print("No changed .c or .h files found. Empty changed_files.txt created.")
