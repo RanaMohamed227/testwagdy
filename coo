@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     // Run the Python script to get the modified .c files
-                    def result = bat(script: "${env.PYTHON_PATH} select.py", returnStdout: true).trim()
+                    def result = bat(script: "${env.PYTHON_PATH} TestCommit.py", returnStdout: true).trim()
                     echo "Modified files output:\n${result}"
 
                     // Parse the result and filter .c files
