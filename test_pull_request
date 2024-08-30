@@ -53,9 +53,6 @@ pipeline {
                                             echo "Building source code for main branch..."
                                             echo "Building the Gtest project..."
                                             break
-                                        default:
-                                            echo "No build steps for branch: ${env.GITHUB_BRANCH}"
-                                            break
                                     }
                                 }
                             }
